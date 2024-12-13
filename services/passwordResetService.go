@@ -15,44 +15,50 @@ type PasswordResetService struct {
 	EmailService *utils.EmailService
 }
 
-func (s *PasswordResetService) RequestPasswordReset(email string) (bool, error) {
+func (s *PasswordResetService) RequestPasswordReset(email string) error {
 	var participant models.Participant
 	if err := s.DB.Where("email = ?", email).First(&participant).Error; err != nil {
-		return false, errors.New("participant not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("Participant not found")
+		}
+		return err
 	}
 
 	resetToken := uuid.New().String()
 	participant.ResetToken = resetToken
 
 	if err := s.DB.Save(&participant).Error; err != nil {
-		return false, err
+		return err
 	}
 
-	/*subject := "Reset Password"
+	subject := "Reset Password"
 	text := "You have requested a password reset. Here is the token to reset your password: " + resetToken
-	if err := s.EmailService.SendEmail(request.Email, subject, text); err != nil {
-		return "", err
-	}*/
+	if err := s.EmailService.SendEmail(email, subject, text); err != nil {
+		return err
+	}
 
-	return true, nil
+	return nil
 }
 
-func (s *PasswordResetService) ConfirmPasswordReset(resetToken, password string) (bool, error) {
+func (s *PasswordResetService) ConfirmPasswordReset(resetToken, password string) error {
 	var participant models.Participant
 	if err := s.DB.Where("reset_token = ?", resetToken).First(&participant).Error; err != nil {
-		return false, errors.New("participant not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("Participant not found")
+		}
+		return err
 	}
 
 	participant.ResetToken = ""
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return false, err
+		return err
 	}
 	participant.Password = string(hashedPassword)
 
 	if err := s.DB.Save(&participant).Error; err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }

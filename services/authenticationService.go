@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"paymentapp/models"
+	"paymentapp/utils"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -15,14 +16,17 @@ type AuthenticationService struct {
 func (s *AuthenticationService) Login(email, password string) (string, error) {
 	var participant models.Participant
 	if err := s.DB.Where("email = ?", email).First(&participant).Error; err != nil {
-		return "", errors.New("incorrect email or password")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", errors.New("Incorrect email or password")
+		}
+		return "", err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(participant.Password), []byte(password)); err != nil {
-		return "", errors.New("incorrect email or password")
+		return "", errors.New("Incorrect email or password")
 	}
 
-	authToken := s.generateAuthToken(&participant)
+	authToken := utils.GenerateAuthToken(&participant)
 	if err := s.DB.Save(&authToken).Error; err != nil {
 		return "", err
 	}
@@ -33,15 +37,21 @@ func (s *AuthenticationService) Login(email, password string) (string, error) {
 func (s *AuthenticationService) Logout(token string) error {
 	var authToken models.AuthToken
 	if err := s.DB.Where("token = ?", token).Delete(&authToken).Error; err != nil {
-		return errors.New("logout failed: " + err.Error())
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("Logout failed")
+		}
+		return err
 	}
 	return nil
 }
 
-func (service *AuthenticationService) ValidateOtp(token string, otp string) (string, error) {
+func (service *AuthenticationService) ValidateOtp(token string, otp string) error {
 	var authToken models.AuthToken
 	if err := service.DB.Preload("Participant").Where("token = ?", token).First(&authToken).Error; err != nil {
-		return "", errors.New("invalid token")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("Invalid or expired token")
+		}
+		return err
 	}
 
 	participant := authToken.Participant
@@ -49,17 +59,20 @@ func (service *AuthenticationService) ValidateOtp(token string, otp string) (str
 		participant.IsVerified = true
 		participant.VerificationCode = ""
 		if err := service.DB.Save(&participant).Error; err != nil {
-			return "", err
+			return err
 		}
-		return "Your account has been successfully validated. Membership status: REGISTERED", nil
+		return nil
 	}
-	return "The OTP you entered is incorrect", nil
+	return errors.New("The OTP you entered is incorrect")
 }
 
 func (service *AuthenticationService) RefreshToken(token string) (*models.AuthToken, error) {
 	var existingToken models.AuthToken
 	if err := service.DB.Where("token = ?", token).First(&existingToken).Error; err != nil {
-		return nil, errors.New("invalid or expired token")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("Invalid or expired token")
+		}
+		return nil, err
 	}
 
 	existingToken.UpdateExpiration()

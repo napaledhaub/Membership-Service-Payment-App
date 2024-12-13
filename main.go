@@ -65,6 +65,7 @@ func initializeServicesAndControllers(r *gin.Engine, db *gorm.DB, cfg *config.Co
 		EmailService: emailService,
 	}
 	registrationService := &services.RegistrationService{
+		DB:            db,
 		EmailService:  emailService,
 		EncryptionKey: []byte(cfg.EncryptionKey),
 	}

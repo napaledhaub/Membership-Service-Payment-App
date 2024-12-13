@@ -1,0 +1,649 @@
+{
+	"info": {
+		"_postman_id": "48b416c2-0aaf-4599-8bac-7bd29aecda1e",
+		"name": "PaymentApp",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40158533"
+	},
+	"item": [
+		{
+			"name": "Service Menu",
+			"item": [
+				{
+					"name": "Add Service Menu",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Yoga Class\",\r\n  \"price_per_session\": 50.00,\r\n  \"total_sessions\": 10,\r\n  \"schedule\": \"Monday, Wednesday, Friday - 10:00 AM to 11:00 AM\",\r\n  \"duration_in_minutes\": 60,\r\n  \"exercise_list\": [\r\n    {\r\n      \"name\": \"Sun Salutation\",\r\n      \"duration_in_minutes\": 10,\r\n      \"description\": \"A series of movements performed in a sequence to warm up the body.\"\r\n    },\r\n    {\r\n      \"name\": \"Downward Dog\",\r\n      \"duration_in_minutes\": 15,\r\n      \"description\": \"A yoga pose that stretches and strengthens the body, especially the legs and arms.\"\r\n    }\r\n  ]\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}service-menu/add",
+							"host": [
+								"{{URL}}service-menu"
+							],
+							"path": [
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Service Menu List",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{URL}}service-menu/list",
+							"host": [
+								"{{URL}}service-menu"
+							],
+							"path": [
+								"list"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"John Doe\",\r\n  \"email\": \"{{Email}}\",\r\n  \"password\": \"password123\",\r\n  \"phone_number\": \"1234567890\",\r\n  \"credit_card\": {\r\n    \"card_no\": \"4111111111111111\",\r\n    \"cvv\": \"123\",\r\n    \"expired_date\": \"12/25\",\r\n    \"owner_name\": \"John Doe\"\r\n  }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}auth/register",
+							"host": [
+								"{{URL}}auth"
+							],
+							"path": [
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Status",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"{{Email}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}auth/check-status",
+							"host": [
+								"{{URL}}auth"
+							],
+							"path": [
+								"check-status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"{{Email}}\",\r\n  \"password\": \"password123\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}auth/login",
+							"host": [
+								"{{URL}}auth"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Confirm",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"otp\": \"663486\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}auth/confirm",
+							"host": [
+								"{{URL}}auth"
+							],
+							"path": [
+								"confirm"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}auth/refresh",
+							"host": [
+								"{{URL}}auth"
+							],
+							"path": [
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"{{Email}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}auth/forgot-password",
+							"host": [
+								"{{URL}}auth"
+							],
+							"path": [
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password Confirmation",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"reset_token\": \"6f0a6cc1-6a7f-4e99-966f-f490e4fee2be\",\r\n  \"new_password\": \"newpassword123\"\r\n}\r\n\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}auth/forgot-password-confirmation",
+							"host": [
+								"{{URL}}auth"
+							],
+							"path": [
+								"forgot-password-confirmation"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}auth/logout",
+							"host": [
+								"{{URL}}auth"
+							],
+							"path": [
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Info Management",
+			"item": [
+				{
+					"name": "Update Fullname",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"new_full_name\": \"John Doe Updated\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}info-management/update-fullname",
+							"host": [
+								"{{URL}}info-management"
+							],
+							"path": [
+								"update-fullname"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Credit Card Info",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"new_credit_card_info\": {\r\n    \"card_no\": \"4111111111111111\",\r\n    \"cvv\": \"123\",\r\n    \"expired_date\": \"12/25\",\r\n    \"owner_name\": \"John Doe Updated\"\r\n  }\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}info-management/update-credit-card-info",
+							"host": [
+								"{{URL}}info-management"
+							],
+							"path": [
+								"update-credit-card-info"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Password",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"old_password\": \"password123\",\r\n    \"new_password\": \"newpassword123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}info-management/update-password",
+							"host": [
+								"{{URL}}info-management"
+							],
+							"path": [
+								"update-password"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Subscription",
+			"item": [
+				{
+					"name": "Subscribe",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}subscription/subscribe?serviceId=1",
+							"host": [
+								"{{URL}}subscription"
+							],
+							"path": [
+								"subscribe"
+							],
+							"query": [
+								{
+									"key": "serviceId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Extend",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}subscription/extend?subscriptionId=1",
+							"host": [
+								"{{URL}}subscription"
+							],
+							"path": [
+								"extend"
+							],
+							"query": [
+								{
+									"key": "subscriptionId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Subscription List",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}subscription/list",
+							"host": [
+								"{{URL}}subscription"
+							],
+							"path": [
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}subscription/cancel?subscriptionId=1",
+							"host": [
+								"{{URL}}subscription"
+							],
+							"path": [
+								"cancel"
+							],
+							"query": [
+								{
+									"key": "subscriptionId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Billing",
+			"item": [
+				{
+					"name": "Verify Bill",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{Token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"expected_bill_amount\": 500\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}billing/verify-bill",
+							"host": [
+								"{{URL}}billing"
+							],
+							"path": [
+								"verify-bill"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Participant",
+			"item": [
+				{
+					"name": "Send Email OTP",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"{{Email}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}participant/send-email-otp?participantId=1",
+							"host": [
+								"{{URL}}participant"
+							],
+							"path": [
+								"send-email-otp"
+							],
+							"query": [
+								{
+									"key": "participantId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Is Payment OTP Expired",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"{{Email}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}participant/is-payment-otp-expired",
+							"host": [
+								"{{URL}}participant"
+							],
+							"path": [
+								"is-payment-otp-expired"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Payment",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"{{Email}}\",\r\n  \"otp\": \"918268\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}participant/verify-payment",
+							"host": [
+								"{{URL}}participant"
+							],
+							"path": [
+								"verify-payment"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

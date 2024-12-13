@@ -18,7 +18,10 @@ type ParticipantService struct {
 func (s *ParticipantService) FindByEmail(email string) (*models.Participant, error) {
 	var participant models.Participant
 	if err := s.DB.Where("email = ?", email).First(&participant).Error; err != nil {
-		return nil, errors.New("participant not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("Participant not found")
+		}
+		return nil, err
 	}
 	return &participant, nil
 }
@@ -26,7 +29,10 @@ func (s *ParticipantService) FindByEmail(email string) (*models.Participant, err
 func (s *ParticipantService) UpdateFullName(token string, newFullName string) error {
 	var authToken models.AuthToken
 	if err := s.DB.Where("token = ?", token).Preload("Participant").First(&authToken).Error; err != nil {
-		return errors.New("participant not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("Participant not found")
+		}
+		return err
 	}
 
 	authToken.Participant.Name = newFullName
@@ -40,12 +46,15 @@ func (s *ParticipantService) UpdateFullName(token string, newFullName string) er
 func (s *ParticipantService) UpdateCreditCardInfo(token string, newCreditCardInfo models.CreditCard) error {
 	var authToken models.AuthToken
 	if err := s.DB.Where("token = ?", token).Preload("Participant").First(&authToken).Error; err != nil {
-		return errors.New("participant not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("Participant not found")
+		}
+		return err
 	}
 
 	creditCardJSON, err := json.Marshal(newCreditCardInfo)
 	if err != nil {
-		return errors.New("failed to marshal credit card info to JSON")
+		return err
 	}
 	encryptedCreditCardInfo, err := utils.EncryptCreditCardInfo(string(creditCardJSON), s.EncryptionKey)
 	if err != nil {
@@ -61,14 +70,17 @@ func (s *ParticipantService) UpdateCreditCardInfo(token string, newCreditCardInf
 	return nil
 }
 
-func (s *ParticipantService) UpdatePassword(token string, oldPassword string, newPassword string) error {
+func (service *ParticipantService) UpdatePassword(token string, oldPassword string, newPassword string) error {
 	var authToken models.AuthToken
-	if err := s.DB.Where("token = ?", token).Preload("Participant").First(&authToken).Error; err != nil {
-		return errors.New("participant not found")
+	if err := service.DB.Where("token = ?", token).Preload("Participant").First(&authToken).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("Participant not found")
+		}
+		return err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(authToken.Participant.Password), []byte(oldPassword)); err != nil {
-		return errors.New("old password does not match")
+		return err
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
@@ -77,7 +89,7 @@ func (s *ParticipantService) UpdatePassword(token string, oldPassword string, ne
 	}
 	authToken.Participant.Password = string(hashedPassword)
 
-	if err := s.DB.Save(&authToken.Participant).Error; err != nil {
+	if err := service.DB.Save(&authToken.Participant).Error; err != nil {
 		return err
 	}
 

@@ -18,9 +18,8 @@ type BillRequest struct {
 func (ctrl *BillingController) VerifyBillAmount(c *gin.Context) {
 	authToken := c.Request.Header.Get("Authorization")
 	var billRequest BillRequest
-
 	if err := c.ShouldBindJSON(&billRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request: " + err.Error()})
 		return
 	}
 

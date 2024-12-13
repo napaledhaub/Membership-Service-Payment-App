@@ -15,7 +15,10 @@ type SubscriptionService struct {
 func (s *SubscriptionService) GetSubscriptionList(token string) ([]models.Subscription, error) {
 	var authToken models.AuthToken
 	if err := s.DB.Where("token = ?", token).Preload("Participant").First(&authToken).Error; err != nil {
-		return nil, errors.New("participant not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("Participant not found")
+		}
+		return nil, err
 	}
 
 	var subscriptions []models.Subscription
@@ -28,12 +31,18 @@ func (s *SubscriptionService) GetSubscriptionList(token string) ([]models.Subscr
 func (s *SubscriptionService) SubscribeToService(token string, serviceMenuID uint) (*models.Subscription, error) {
 	var authToken models.AuthToken
 	if err := s.DB.Where("token = ?", token).Preload("Participant").First(&authToken).Error; err != nil {
-		return nil, errors.New("participant not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("Participant not found")
+		}
+		return nil, err
 	}
 
 	var serviceMenu models.ServiceMenu
 	if err := s.DB.First(&serviceMenu, serviceMenuID).Error; err != nil {
-		return nil, errors.New("service menu not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("Service menu not found")
+		}
+		return nil, err
 	}
 
 	var subscription models.Subscription
@@ -64,12 +73,18 @@ func (s *SubscriptionService) SubscribeToService(token string, serviceMenuID uin
 func (s *SubscriptionService) CancelSubscription(token string, subscriptionId uint) error {
 	var authToken models.AuthToken
 	if err := s.DB.Where("token = ?", token).Preload("Participant").First(&authToken).Error; err != nil {
-		return errors.New("participant not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("Participant not found")
+		}
+		return err
 	}
 
 	var subscription models.Subscription
 	if err := s.DB.Preload("ServiceMenu").First(&subscription, subscriptionId).Error; err != nil {
-		return errors.New("subscription not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("Subscription not found")
+		}
+		return err
 	}
 
 	participant := authToken.Participant
@@ -95,12 +110,18 @@ func (s *SubscriptionService) CancelSubscription(token string, subscriptionId ui
 func (s *SubscriptionService) ExtendSubscription(token string, subscriptionId uint) error {
 	var authToken models.AuthToken
 	if err := s.DB.Where("token = ?", token).Preload("Participant").First(&authToken).Error; err != nil {
-		return errors.New("participant not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("Participant not found")
+		}
+		return err
 	}
 
 	var subscription models.Subscription
 	if err := s.DB.Preload("ServiceMenu").First(&subscription, subscriptionId).Error; err != nil {
-		return errors.New("subscription not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("Subscription not found")
+		}
+		return err
 	}
 
 	serviceMenu := subscription.ServiceMenu

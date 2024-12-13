@@ -17,7 +17,10 @@ type PaymentService struct {
 func (s *PaymentService) VerifyBillAmount(token string, expectedBillAmount float64) error {
 	var authToken models.AuthToken
 	if err := s.DB.Where("token = ?", token).Preload("Participant").First(&authToken).Error; err != nil {
-		return errors.New("participant not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("Participant not found")
+		}
+		return err
 	}
 
 	participant := authToken.Participant
@@ -27,13 +30,16 @@ func (s *PaymentService) VerifyBillAmount(token string, expectedBillAmount float
 		return s.DB.Save(&participant).Error
 	}
 
-	return errors.New("bill verification failed")
+	return errors.New("Bill verification failed")
 }
 
 func (s *PaymentService) SendEmailVerification(email string, participantId string) error {
 	var participant models.Participant
 	if err := s.DB.Where("email = ?", email).First(&participant).Error; err != nil {
-		return errors.New("participant not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("Participant not found")
+		}
+		return err
 	}
 
 	if participant.IsBillVerified {
@@ -45,11 +51,11 @@ func (s *PaymentService) SendEmailVerification(email string, participantId strin
 			return err
 		}
 
-		/*subject := "OTP Code"
+		subject := "OTP Code"
 		text := "Your OTP code is: " + code
 		if err := s.EmailService.SendEmail(email, subject, text); err != nil {
 			return err
-		}*/
+		}
 
 		return nil
 	}
@@ -60,7 +66,10 @@ func (s *PaymentService) SendEmailVerification(email string, participantId strin
 func (s *PaymentService) VerifyPaymentOTP(email string, OTP string) error {
 	var participant models.Participant
 	if err := s.DB.Where("email = ?", email).First(&participant).Error; err != nil {
-		return errors.New("participant not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("Participant not found")
+		}
+		return err
 	}
 
 	if participant.PaymentOTP == OTP && time.Now().Before(participant.PaymentOTPExpiration) {
@@ -71,13 +80,17 @@ func (s *PaymentService) VerifyPaymentOTP(email string, OTP string) error {
 		return s.DB.Save(&participant).Error
 	}
 
-	return errors.New("payment verification failed")
+	return errors.New("Payment verification failed")
 }
 
-func (s *PaymentService) IsPaymentOTPExpired(email string) bool {
+func (s *PaymentService) IsPaymentOTPExpired(email string) (bool, error) {
 	var participant models.Participant
 	if err := s.DB.Where("email = ?", email).First(&participant).Error; err != nil {
-		return false
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, errors.New("Participant not found")
+		}
+		return false, err
 	}
-	return time.Now().After(participant.PaymentOTPExpiration)
+
+	return time.Now().After(participant.PaymentOTPExpiration), nil
 }

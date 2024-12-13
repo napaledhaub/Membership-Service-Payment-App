@@ -20,13 +20,13 @@ type InfoManagementController struct {
 }
 
 func (ctrl *InfoManagementController) UpdateFullName(c *gin.Context) {
+	authToken := c.Request.Header.Get("Authorization")
 	var updateInfoRequest UpdateInfoManagementRequest
 	if err := c.ShouldBindJSON(&updateInfoRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request: " + err.Error()})
 		return
 	}
 
-	authToken := c.Request.Header.Get("Authorization")
 	err := ctrl.ParticipantService.UpdateFullName(authToken, updateInfoRequest.NewFullName)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Update full name failed: " + err.Error()})
@@ -37,13 +37,13 @@ func (ctrl *InfoManagementController) UpdateFullName(c *gin.Context) {
 }
 
 func (ctrl *InfoManagementController) UpdateCreditCardInfo(c *gin.Context) {
+	authToken := c.Request.Header.Get("Authorization")
 	var request UpdateInfoManagementRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request: " + err.Error()})
 		return
 	}
 
-	authToken := c.Request.Header.Get("Authorization")
 	err := ctrl.ParticipantService.UpdateCreditCardInfo(authToken, request.NewCreditCardInfo)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Update credit card failed: " + err.Error()})
@@ -54,13 +54,13 @@ func (ctrl *InfoManagementController) UpdateCreditCardInfo(c *gin.Context) {
 }
 
 func (ctrl *InfoManagementController) UpdatePassword(c *gin.Context) {
+	authToken := c.Request.Header.Get("Authorization")
 	var request UpdateInfoManagementRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request: " + err.Error()})
 		return
 	}
 
-	authToken := c.Request.Header.Get("Authorization")
 	err := ctrl.ParticipantService.UpdatePassword(authToken, request.OldPassword, request.NewPassword)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Update password failed: " + err.Error()})

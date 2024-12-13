@@ -14,15 +14,12 @@ type ParticipantController struct {
 func (ctrl *ParticipantController) SendEmailVerification(c *gin.Context) {
 	var emailRequest EmailRequest
 	participantId := c.Query("participantId")
-
 	if err := c.ShouldBindJSON(&emailRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request: " + err.Error()})
 		return
 	}
 
-	err := ctrl.PaymentService.SendEmailVerification(emailRequest.Email, participantId)
-
-	if err != nil {
+	if err := ctrl.PaymentService.SendEmailVerification(emailRequest.Email, participantId); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Failed to send verification email: " + err.Error()})
 		return
 	}
@@ -32,9 +29,8 @@ func (ctrl *ParticipantController) SendEmailVerification(c *gin.Context) {
 
 func (ctrl *ParticipantController) VerifyPayment(c *gin.Context) {
 	var verificationRequest VerificationRequest
-
 	if err := c.ShouldBindJSON(&verificationRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request: " + err.Error()})
 		return
 	}
 
@@ -48,13 +44,17 @@ func (ctrl *ParticipantController) VerifyPayment(c *gin.Context) {
 
 func (ctrl *ParticipantController) IsPaymentOTPExpired(c *gin.Context) {
 	var emailRequest EmailRequest
-
 	if err := c.ShouldBindJSON(&emailRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request: " + err.Error()})
 		return
 	}
 
-	expired := ctrl.PaymentService.IsPaymentOTPExpired(emailRequest.Email)
+	expired, err := ctrl.PaymentService.IsPaymentOTPExpired(emailRequest.Email)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Check payment failed: " + err.Error()})
+		return
+	}
+
 	if !expired {
 		c.JSON(http.StatusOK, gin.H{"message": "Payment OTP is still valid"})
 	} else {
