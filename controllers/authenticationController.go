@@ -12,6 +12,7 @@ type AuthenticationController struct {
 	AuthenticationService *services.AuthenticationService
 	ParticipantService    *services.ParticipantService
 	PasswordResetService  *services.PasswordResetService
+	RegistrationService   *services.RegistrationService
 }
 
 type EmailRequest struct {
@@ -24,6 +25,7 @@ type LoginRequest struct {
 }
 
 type VerificationRequest struct {
+	EmailRequest
 	OTP string `json:"otp"`
 }
 
@@ -39,7 +41,7 @@ func (ctrl *AuthenticationController) Register(c *gin.Context) {
 		return
 	}
 
-	verificationCode, err := ctrl.AuthenticationService.Register(registerRequest)
+	verificationCode, err := ctrl.RegistrationService.Register(registerRequest)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to register: " + err.Error()})
 		return

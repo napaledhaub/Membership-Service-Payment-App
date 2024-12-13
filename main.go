@@ -1,10 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"os"
+	"paymentapp/config"
 	"paymentapp/controllers"
 	"paymentapp/middleware"
 	"paymentapp/models"
@@ -16,61 +15,38 @@ import (
 	"gorm.io/gorm"
 )
 
-type Config struct {
-	Database struct {
-		Host     string `json:"host"`
-		User     string `json:"user"`
-		Password string `json:"password"`
-		DBName   string `json:"dbname"`
-		Port     int    `json:"port"`
-		SSLMode  string `json:"sslmode"`
-	} `json:"database"`
-	Email struct {
-		SMTPHost string `json:"smtp_host"`
-		SMTPPort int    `json:"smtp_port"`
-		Username string `json:"username"`
-		Password string `json:"password"`
-	} `json:"email"`
-	EncryptionKey string `json:"encryption_key"`
-}
-
-func loadConfig() (*Config, error) {
-	file, err := os.Open("config.json")
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	var cfg Config
-	if err := json.NewDecoder(file).Decode(&cfg); err != nil {
-		return nil, err
-	}
-	return &cfg, nil
-}
-
 func main() {
-	cfg, err := loadConfig()
+	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
-		cfg.Database.Host, cfg.Database.User, cfg.Database.Password, cfg.Database.DBName, cfg.Database.Port, cfg.Database.SSLMode)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := setupDatabase(cfg)
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
 
+	r := gin.Default()
+	r.Use(middleware.LoggingMiddleware())
+
+	initializeServicesAndControllers(r, db, cfg)
+
+	r.Run(":8080")
+}
+
+func setupDatabase(cfg *config.Config) (*gorm.DB, error) {
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
+		cfg.Database.Host, cfg.Database.User, cfg.Database.Password, cfg.Database.DBName, cfg.Database.Port, cfg.Database.SSLMode)
+	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
+}
+
+func initializeServicesAndControllers(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	db.AutoMigrate(
 		&models.ServiceMenu{},
 		&models.Exercise{},
 		&models.Participant{},
 		&models.AuthToken{},
 		&models.Subscription{})
-
-	r := gin.Default()
-
-	r.Use(middleware.LoggingMiddleware())
 
 	emailService := &utils.EmailService{
 		SMTPHost: cfg.Email.SMTPHost,
@@ -80,26 +56,48 @@ func main() {
 	}
 
 	serviceMenuService := &services.ServiceMenuService{DB: db}
-	serviceMenuController := &controllers.ServiceMenuController{ServiceMenuService: serviceMenuService}
-
-	participantService := &services.ParticipantService{DB: db}
+	participantService := &services.ParticipantService{
+		DB:            db,
+		EncryptionKey: []byte(cfg.EncryptionKey),
+	}
 	passwordResetService := &services.PasswordResetService{
 		DB:           db,
 		EmailService: emailService,
 	}
-	authenticationService := &services.AuthenticationService{
-		DB:            db,
+	registrationService := &services.RegistrationService{
 		EmailService:  emailService,
-		EncryptionKey: []byte("1234567812345678"),
+		EncryptionKey: []byte(cfg.EncryptionKey),
 	}
+	subscriptionService := &services.SubscriptionService{DB: db}
+	paymentService := &services.PaymentService{
+		EmailService: emailService,
+		DB:           db,
+	}
+
+	serviceMenuController := &controllers.ServiceMenuController{ServiceMenuService: serviceMenuService}
+	authenticationService := &services.AuthenticationService{DB: db}
 	authenticationController := &controllers.AuthenticationController{
 		AuthenticationService: authenticationService,
 		ParticipantService:    participantService,
 		PasswordResetService:  passwordResetService,
+		RegistrationService:   registrationService,
+	}
+	infoManagementController := &controllers.InfoManagementController{
+		ParticipantService: participantService,
+	}
+	subscriptionController := &controllers.SubscriptionController{
+		SubscriptionService: subscriptionService,
+	}
+	billingController := &controllers.BillingController{
+		PaymentService: paymentService,
+	}
+	participantController := &controllers.ParticipantController{
+		PaymentService: paymentService,
 	}
 
 	r.GET("/service-menu/list", serviceMenuController.GetAllServiceMenus)
 	r.POST("/service-menu/add", serviceMenuController.AddServiceMenu)
+
 	r.POST("/auth/register", authenticationController.Register)
 	r.POST("/auth/check-status", authenticationController.CheckStatus)
 	r.POST("/auth/login", authenticationController.Login)
@@ -109,5 +107,18 @@ func main() {
 	r.POST("/auth/forgot-password-confirmation", authenticationController.ForgotPasswordConfirmation)
 	r.POST("/auth/logout", authenticationController.Logout)
 
-	r.Run(":8080")
+	r.POST("/info-management/update-fullname", infoManagementController.UpdateFullName)
+	r.POST("/info-management/update-credit-card-info", infoManagementController.UpdateCreditCardInfo)
+	r.POST("/info-management/update-password", infoManagementController.UpdatePassword)
+
+	r.GET("subscription/subscribe", subscriptionController.SubscribeToService)
+	r.GET("subscription/list", subscriptionController.GetSubscriptionList)
+	r.GET("subscription/extend", subscriptionController.ExtendSubscription)
+	r.GET("subscription/cancel", subscriptionController.CancelSubscription)
+
+	r.POST("/billing/verify-bill", billingController.VerifyBillAmount)
+
+	r.POST("/participant/send-email-otp", participantController.SendEmailVerification)
+	r.POST("/participant/is-payment-otp-expired", participantController.IsPaymentOTPExpired)
+	r.POST("/participant/verify-payment", participantController.VerifyPayment)
 }
