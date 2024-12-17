@@ -1,4 +1,5 @@
 🌟 Golang API Backend with Gin, GORM, and PostgreSQL 🌟
+
 📖 Overview
 Welcome to the Golang API backend project! This application is built using the Gin web framework and GORM for Object-Relational Mapping (ORM), connecting seamlessly to a PostgreSQL database. The API is designed to handle user registration with email verification, password recovery, and secure user login using JWT (JSON Web Tokens) for authorization.
 🚀 Features
