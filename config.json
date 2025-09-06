@@ -3,7 +3,7 @@
       "host": "localhost",
       "user": "postgres",
       "password": "postgres",
-      "dbname": "payment_app",
+      "dbname": "postgres",
       "port": 5432,
       "sslmode": "disable"
     },
@@ -11,7 +11,8 @@
       "smtp_host": "smtp.gmail.com",
       "smtp_port": 587,
       "username": "buahhulupes@gmail.com",
-      "password": "odufrpxbrharwyqs"
+      "password": "odufrpxbrharwyqs",
+      "is_smpt_active": false
     },
     "encryption_key": "1234567812345678"
   }

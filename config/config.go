@@ -15,10 +15,11 @@ type Config struct {
 		SSLMode  string `json:"sslmode"`
 	} `json:"database"`
 	Email struct {
-		SMTPHost string `json:"smtp_host"`
-		SMTPPort int    `json:"smtp_port"`
-		Username string `json:"username"`
-		Password string `json:"password"`
+		SMTPHost     string `json:"smtp_host"`
+		SMTPPort     int    `json:"smtp_port"`
+		Username     string `json:"username"`
+		Password     string `json:"password"`
+		IsSMTPActive bool   `json:"is_smpt_active"`
 	} `json:"email"`
 	EncryptionKey string `json:"encryption_key"`
 }

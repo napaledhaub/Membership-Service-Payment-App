@@ -49,10 +49,11 @@ func initializeServicesAndControllers(r *gin.Engine, db *gorm.DB, cfg *config.Co
 		&models.Subscription{})
 
 	emailService := &utils.EmailService{
-		SMTPHost: cfg.Email.SMTPHost,
-		SMTPPort: cfg.Email.SMTPPort,
-		Username: cfg.Email.Username,
-		Password: cfg.Email.Password,
+		SMTPHost:     cfg.Email.SMTPHost,
+		SMTPPort:     cfg.Email.SMTPPort,
+		Username:     cfg.Email.Username,
+		Password:     cfg.Email.Password,
+		IsSMTPActive: cfg.Email.IsSMTPActive,
 	}
 
 	serviceMenuService := &services.ServiceMenuService{DB: db}
